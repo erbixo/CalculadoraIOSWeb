@@ -1,7 +1,8 @@
 const display = document.querySelector('.display');
 const historyDisplay = document.querySelector('.operation-history');
 const clearButton = document.getElementById('btn-clear');
-const buttons = document.querySelectorAll('.buttons-grid button, button');
+const buttons = document.querySelectorAll('.buttons-grid button');
+
 
 let currentNumber = '0';
 let equationStructure = [];
@@ -77,31 +78,12 @@ function updateDisplay() {
         display.textContent = activeEquation || '0';
     }
 
-    // Escala el tamaño del texto dinámicamente según su longitud para que no se desborde
     if (display.textContent.length > 10) {
         display.style.fontSize = '3rem';
     } else if (display.textContent.length > 6) {
         display.style.fontSize = '4rem';
     } else {
         display.style.fontSize = '5.5rem';
-    }
-}
-
-function handleClearAction() {
-    if (clearButton.textContent === 'C') {
-        currentNumber = '0';
-        
-        if (resetOnNextNumber) {
-            equationStructure = [];
-            resetOnNextNumber = false;
-        }
-    } else {
-        currentNumber = '0';
-        equationStructure = [];
-        if (historyDisplay) historyDisplay.textContent = ''; 
-        resetOnNextNumber = false;
-        lastAppliedOperator = null;
-        lastAppliedValue = null;
     }
 }
 
@@ -113,7 +95,6 @@ function updateClearButtonText() {
     }
 }
 
-
 function isOperator(val) {
     return ['+', '−', '×', '÷'].includes(val);
 }
@@ -121,7 +102,6 @@ function isOperator(val) {
 function handleClearAction() {
     if (clearButton.textContent === 'C') {
         currentNumber = '0';
-        
         if (resetOnNextNumber) {
             equationStructure = [];
             resetOnNextNumber = false;
@@ -129,7 +109,6 @@ function handleClearAction() {
     } else {
         currentNumber = '0';
         equationStructure = [];
-        if (historyDisplay) historyDisplay.textContent = ''; 
         resetOnNextNumber = false;
         lastAppliedOperator = null;
         lastAppliedValue = null;
@@ -166,23 +145,6 @@ function appendDot() {
     }
 }
 
-function handleClearAction() {
-    if (clearButton.textContent === 'C') {
-        currentNumber = '0';
-        if (resetOnNextNumber) {
-            equationStructure = [];
-            resetOnNextNumber = false;
-        }
-    } else {
-        currentNumber = '0';
-        equationStructure = [];
-        historyDisplay.textContent = ''; 
-        resetOnNextNumber = false;
-        lastAppliedOperator = null;
-        lastAppliedValue = null;
-    }
-}
-
 function handleBackspace() {
     if (resetOnNextNumber) {
         resetOnNextNumber = false;
@@ -201,11 +163,9 @@ function handleBackspace() {
             }
         }
     } 
-    // Si la pantalla muestra un operador solo (ej: "3 × ") y le das a borrar
     else if (currentNumber === '0' && equationStructure.length > 0) {
         let lastItem = equationStructure[equationStructure.length - 1];
         if (isOperator(lastItem)) {
-            // Quitamos el operador de la memoria y recuperamos el número anterior para editarlo
             equationStructure.pop(); 
             let previousNum = equationStructure.pop();
             currentNumber = previousNum !== undefined ? previousNum : '0';
@@ -336,8 +296,61 @@ function calculate() {
 
     historyDisplay.textContent = `${fullOperationString}`;
 
+    if (!window.historialOperaciones) window.historialOperaciones = [];
+    window.historialOperaciones.push({
+        ecuacion: fullOperationString,
+        resultado: finalResult
+    });
+    actualizarPanelHistorial();
+
     currentNumber = finalResult.toString();
     lastResult = currentNumber;
     equationStructure = []; 
     resetOnNextNumber = true; 
+}
+
+const btnHistorial = document.getElementById('btn-historial');
+const panelHistorial = document.getElementById('panel-historial');
+
+btnHistorial.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    panelHistorial.classList.toggle('abierto');
+    updateClearButtonText();
+});
+
+
+document.querySelector('.calculator').addEventListener('click', (e) => {
+    if (!panelHistorial.contains(e.target) && e.target !== btnHistorial) {
+        panelHistorial.classList.remove('abierto');
+    }
+});
+
+function actualizarPanelHistorial() {
+    const lista = panelHistorial.querySelector('.lista-operaciones');
+    lista.innerHTML = '';
+
+    window.historialOperaciones.forEach((item) => {
+        const fila = document.createElement('div');
+        fila.classList.add('fila-historial');
+        fila.innerHTML = `
+            <span class="hist-eq">${item.ecuacion} =</span>
+            <span class="hist-res">${item.resultado}</span>
+        `;
+        
+        fila.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            currentNumber = item.resultado.toString();
+            equationStructure = [];
+            resetOnNextNumber = true;
+            
+            updateDisplay();
+            clearButton.textContent = 'AC';
+            
+            panelHistorial.classList.remove('abierto');
+        });
+        
+        lista.appendChild(fila);
+    });
 }

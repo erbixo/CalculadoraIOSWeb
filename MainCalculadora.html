@@ -8,13 +8,22 @@
     </head>
     <body>
         <div class="calculator">
+            <button class="btn-toggle-history" id="btn-historial" title="Ver Historial">
+                <svg xmlns="http://w3.org" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 8v4l3 3" />
+                    <path d="M3.34 17a10 10 0 1 1 .02-10" />
+                    <path d="M2 2v5h5" />
+                </svg>
+            </button>
+            <div class="panel-historial-flotante" id="panel-historial">
+                <div class="titulo-historial">Historial de Operaciones</div>
+                <div class="lista-operaciones"></div>
+            </div>
             <div class="display-container">
                 <div class="operation-history"></div>
                 <div class="display">0</div>
             </div>
             <div class="buttons-grid">
-
-                <!-- Fila 1 -->
                 <button class="btn-top-op btn-backspace">
                     <svg xmlns="http://w3.org" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0 -2-2z" />
@@ -26,25 +35,21 @@
                 <button class="btn-top-op">%</button>
                 <button class="btn-right-op">÷</button>
 
-                <!-- Fila 2 -->
                 <button class="btn-number">7</button>
                 <button class="btn-number">8</button>
                 <button class="btn-number">9</button>
                 <button class="btn-right-op">×</button>
 
-                <!-- Fila 3 -->
                 <button class="btn-number">4</button>
                 <button class="btn-number">5</button>
                 <button class="btn-number">6</button>
                 <button class="btn-right-op">−</button>
 
-                <!-- Fila 4 -->
                 <button class="btn-number">1</button>
                 <button class="btn-number">2</button>
                 <button class="btn-number">3</button>
                 <button class="btn-right-op">+</button>
 
-                <!-- Fila 5 -->
                 <button class="btn-number btn-plus-minus">
                     <span class="sign-plus">+</span>
                     <span class="sign-minus">−</span>

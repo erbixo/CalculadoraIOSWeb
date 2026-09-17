@@ -140,20 +140,33 @@ body {
     font-weight: 400;
     min-height: 1.8rem;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-x: auto;
+    overflow-y: hidden;
     margin-bottom: 5px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.operation-history::-webkit-scrollbar {
+    display: none;
 }
 
 .display {
     color: #ffffff;
-    font-size: 5.5rem;
+    font-size: 4.5rem;
     text-align: right;
     font-weight: 300;
     letter-spacing: -2px;
     white-space: nowrap;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     line-height: 1;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.display::-webkit-scrollbar {
+    display: none;
 }
 
 .buttons-grid {

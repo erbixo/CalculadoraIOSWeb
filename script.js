@@ -79,12 +79,14 @@ function updateDisplay() {
     }
 
     if (display.textContent.length > 10) {
-        display.style.fontSize = '3rem';
+        display.style.fontSize = '2.4rem';
     } else if (display.textContent.length > 6) {
-        display.style.fontSize = '4rem';
+        display.style.fontSize = '3.2rem';
     } else {
-        display.style.fontSize = '5.5rem';
+        display.style.fontSize = '4.5rem';
     }
+
+    display.scrollLeft = display.scrollWidth;
 }
 
 function updateClearButtonText() {
@@ -97,6 +99,67 @@ function updateClearButtonText() {
 
 function isOperator(val) {
     return ['+', '−', '×', '÷'].includes(val);
+}
+
+function roundResult(num) {
+    if (!isFinite(num)) return num;
+    // Si el número es muy pequeño, no lo redondeamos todavía para no perderlo como 0
+    if (Math.abs(num) > 0 && Math.abs(num) < 1e-6) {
+        return num;
+    }
+    return parseFloat(num.toFixed(7));
+}
+
+const SUPERSCRIPT_MAP = {
+    '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+    '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+    '-': '⁻'
+};
+const FROM_SUPERSCRIPT_MAP = {
+    '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4',
+    '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9',
+    '⁻': '-'
+};
+
+function toSuperscript(num) {
+    return num.toString().split('').map(ch => SUPERSCRIPT_MAP[ch] !== undefined ? SUPERSCRIPT_MAP[ch] : ch).join('');
+}
+
+function fromSuperscript(str) {
+    return str.split('').map(ch => FROM_SUPERSCRIPT_MAP[ch] !== undefined ? FROM_SUPERSCRIPT_MAP[ch] : ch).join('');
+}
+
+function formatResult(num) {
+    if (typeof num !== 'number' || !isFinite(num)) {
+        return num.toString();
+    }
+    if (num === 0) return '0';
+
+    const absNum = Math.abs(num);
+
+    // Muy grande o muy pequeño: notación científica en base 10 (mantisa × 10^exponente)
+    if (absNum >= 1e10 || absNum < 1e-6) {
+        let expStr = num.toExponential(6);
+        let [mantissa, exponent] = expStr.split('e');
+        let expNum = parseInt(exponent, 10);
+        return `${mantissa} × 10${toSuperscript(expNum)}`;
+    }
+
+    return num.toString();
+}
+
+function parseValue(val) {
+    if (typeof val === 'number') return val;
+    if (typeof val !== 'string') return NaN;
+
+    const sciMatch = val.match(/^(-?\d+\.?\d*)\s*×\s*10([⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+)$/);
+    if (sciMatch) {
+        const mantissa = parseFloat(sciMatch[1]);
+        const exponent = parseInt(fromSuperscript(sciMatch[2]), 10);
+        return mantissa * Math.pow(10, exponent);
+    }
+
+    return parseFloat(val);
 }
 
 function handleClearAction() {
@@ -125,9 +188,7 @@ function appendNumber(number) {
     if (currentNumber === '0') {
         currentNumber = number;
     } else {
-        if (currentNumber.length < 12) { 
-            currentNumber += number;
-        }
+        currentNumber += number;
     }
 }
 
@@ -246,7 +307,7 @@ function calculate() {
         
         if (typeof token === 'string' && token.includes('%')) {
             let parts = token.split('%');
-            let numericValue = parseFloat(parts[0]);
+            let numericValue = parseValue(parts[0]);
             let calculatedPercent;
 
             calculatedPercent = numericValue / 100;
@@ -254,7 +315,7 @@ function calculate() {
 
             if (parts[1] && parts[1].trim() !== '') {
                 tokens.push('×');
-                tokens.push(parseFloat(parts[1]));
+                tokens.push(parseValue(parts[1]));
             }
         } else {
             tokens.push(token);
@@ -264,8 +325,8 @@ function calculate() {
     let i = 0;
     while (i < tokens.length) {
         if (tokens[i] === '×' || tokens[i] === '÷') {
-            let prev = parseFloat(tokens[i - 1]);
-            let next = parseFloat(tokens[i + 1]);
+            let prev = parseValue(tokens[i - 1]);
+            let next = parseValue(tokens[i + 1]);
             let res = 0;
             if (tokens[i] === '×') res = prev * next;
             if (tokens[i] === '÷') res = next === 0 ? 'Error' : prev / next;
@@ -278,8 +339,8 @@ function calculate() {
     i = 0;
     while (tokens.length > 1 && i < tokens.length) {
         if (tokens[i] === '+' || tokens[i] === '−') {
-            let prev = parseFloat(tokens[i - 1]);
-            let next = parseFloat(tokens[i + 1]);
+            let prev = parseValue(tokens[i - 1]);
+            let next = parseValue(tokens[i + 1]);
             let res = 0;
             if (tokens[i] === '+') res = prev + next;
             if (tokens[i] === '−') res = prev - next;
@@ -291,19 +352,22 @@ function calculate() {
 
     let finalResult = tokens[0];
     if (typeof finalResult === 'number') {
-        finalResult = parseFloat(finalResult.toFixed(7));
+        finalResult = roundResult(finalResult);
     }
 
+    let displayResult = formatResult(finalResult);
+
     historyDisplay.textContent = `${fullOperationString}`;
+    historyDisplay.scrollLeft = historyDisplay.scrollWidth;
 
     if (!window.historialOperaciones) window.historialOperaciones = [];
     window.historialOperaciones.push({
         ecuacion: fullOperationString,
-        resultado: finalResult
+        resultado: displayResult
     });
     actualizarPanelHistorial();
 
-    currentNumber = finalResult.toString();
+    currentNumber = displayResult;
     lastResult = currentNumber;
     equationStructure = []; 
     resetOnNextNumber = true; 

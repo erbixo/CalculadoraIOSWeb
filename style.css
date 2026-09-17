@@ -12,6 +12,7 @@ body {
     align-items: center;
     min-height: 100vh;
     overflow: hidden;
+    transition: background-color 0.3s ease;
 }
 
 .calculator {
@@ -23,6 +24,7 @@ body {
     justify-content: flex-end;
     position: relative;
     overflow: hidden;
+    transition: background-color 0.3s ease;
 }
 
 .btn-toggle-history {
@@ -49,6 +51,34 @@ body {
 }
 
 .btn-toggle-history svg {
+    width: 24px;
+    height: 24px;
+}
+
+.btn-extra {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    background-color: transparent;
+    color: #a5a5a5;
+    border: none;
+    cursor: pointer;
+    z-index: 15;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-extra:hover {
+    background-color: #222222;
+    color: #ffffff;
+}
+
+.btn-extra svg {
     width: 24px;
     height: 24px;
 }
@@ -84,6 +114,61 @@ body {
     padding-bottom: 12px;
     margin-bottom: 10px;
     border-bottom: 1px solid #333333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.titulo-historial > span {
+    flex: 1;
+    text-align: center;
+    margin-left: 32px;
+}
+
+.btn-borrar-historial {
+    width: 32px;
+    height: 32px;
+    background-color: transparent;
+    color: #a5a5a5;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    padding: 0;
+    transition: background-color 0.2s, color 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-borrar-historial:hover {
+    background-color: rgba(255, 59, 48, 0.15);
+    color: #ff3b30;
+}
+
+.btn-borrar-historial:active {
+    filter: none;
+    background-color: rgba(255, 59, 48, 0.25);
+}
+
+.btn-borrar-historial svg {
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+}
+
+body.tema-claro .titulo-historial {
+    color: #000000;
+    border-bottom: 1px solid #d1d1d6;
+}
+
+body.tema-claro .btn-borrar-historial {
+    color: #6c6c70;
+}
+
+body.tema-claro .btn-borrar-historial:hover {
+    background-color: rgba(255, 59, 48, 0.15);
+    color: #ff3b30;
 }
 
 .lista-operaciones {
@@ -125,6 +210,7 @@ body {
 }
 
 .display-container {
+    margin-top: 55px;
     margin-bottom: 15px;
     padding: 0 20px;
     display: flex;
@@ -192,7 +278,7 @@ button {
 }
 
 button:active {
-    filter: brightness(130%); 
+    filter: brightness(130%);
 }
 
 .btn-number {
@@ -212,7 +298,7 @@ button:active {
     color: #ffffff;
     font-size: 2.6rem;
     font-weight: 400;
-    padding-bottom: 7px; 
+    padding-bottom: 7px;
 }
 
 .buttons-grid button:nth-child(3) {
@@ -230,19 +316,19 @@ button:active {
 }
 
 .btn-backspace {
-    padding: 0;          
-    display: flex;       
-    justify-content: center; 
-    align-items: center; 
-    line-height: 0;      
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 0;
 }
 
 .btn-backspace svg {
-    width: 40px;         
+    width: 40px;
     height: 40px;
-    color: #000000;    
+    color: #000000;
     display: block;
-    transform: translate(-2px, 1px); 
+    transform: translate(-2px, 1px);
 }
 
 .btn-plus-minus {
@@ -273,10 +359,248 @@ button:active {
 .btn-plus-minus::after {
     content: "";
     position: absolute;
-    width: 28px;               
+    width: 28px;
     height: 2.5px;
-    background-color: #ffffff; 
+    background-color: #ffffff;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) rotate(-50deg); 
+    transform: translate(-50%, -50%) rotate(-50deg);
+}
+
+.panel-extra-flotante {
+    position: absolute;
+    top: 70px;
+    right: 20px;
+    background-color: rgba(28, 28, 30, 0.98);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 14px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 210px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    z-index: 20;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.95);
+    transform-origin: top right;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+
+.panel-extra-flotante.abierto {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.extra-opcion {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    height: auto;
+    padding: 12px 14px;
+    background-color: transparent;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 400;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.15s ease;
+}
+
+.extra-opcion:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.extra-opcion:active {
+    filter: none;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.extra-icono {
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+}
+
+.extra-opcion.activa {
+    color: #ff9f0a;
+}
+
+.fila-cientifica {
+    display: none;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+    justify-items: center;
+}
+
+.calculator.modo-cientifico .fila-cientifica {
+    display: grid;
+}
+
+.btn-cientifico {
+    background-color: #1c1c1e;
+    color: #ff9f0a;
+    font-size: 1.3rem;
+    font-weight: 500;
+    height: 44px;
+    width: 44px;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    border: 1px solid #2c2c2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    transition: filter 0.1s ease, background-color 0.15s ease;
+}
+
+.btn-cientifico[data-func="paren-open"]{
+    font-size: 1.4rem;
+    font-weight: 400;
+    padding-bottom: 2px;
+    padding-left: 1px;
+    padding-right: 5px;
+}
+
+.btn-cientifico[data-func="paren-close"] {
+    font-size: 1.4rem;
+    font-weight: 400;
+    padding-bottom: 2px;
+    padding-left: 5px;
+}
+
+.btn-cientifico[data-func="sqrt"] {
+    font-size: 1.4rem;
+    padding-bottom: 1px;
+    padding-top: 1px;
+}
+
+.btn-cientifico[data-func="pow"] {
+    font-size: 1.1rem;
+    padding-bottom: 1px;
+    padding-left: 4px;
+}
+
+.btn-cientifico[data-func="e"] {
+    font-size: 1.3rem;
+    font-style: italic;
+    font-family: Georgia, "Times New Roman", serif;
+    padding-bottom: 1px;
+}
+
+.btn-cientifico[data-func="pi"] {
+    font-size: 1.4rem;
+    font-family: Georgia, "Times New Roman", serif;
+    padding-bottom: 1px;
+}
+
+.btn-cientifico:hover {
+    background-color: #2c2c2e;
+}
+
+.btn-cientifico:active {
+    filter: brightness(160%);
+}
+
+body.tema-claro .btn-cientifico {
+    background-color: #e0e0e5;
+    color: #ff9f0a;
+    border: 1px solid #d1d1d6;
+}
+
+body.tema-claro .btn-cientifico:hover {
+    background-color: #d1d1d6;
+}
+
+body.tema-claro {
+    background-color: #f2f2f7;
+}
+
+body.tema-claro .calculator {
+    background-color: #f2f2f7;
+}
+
+body.tema-claro .display {
+    color: #000000;
+}
+
+body.tema-claro .operation-history {
+    color: #6c6c70;
+}
+
+body.tema-claro .btn-number {
+    background-color: #e0e0e5;
+    color: #000000;
+}
+
+body.tema-claro .btn-top-op {
+    background-color: #d1d1d6;
+    color: #000000;
+}
+
+body.tema-claro .btn-plus-minus {
+    background-color: #e0e0e5;
+    color: #000000;
+}
+
+body.tema-claro .btn-plus-minus::after {
+    background-color: #000000;
+}
+
+body.tema-claro .btn-toggle-history,
+body.tema-claro .btn-extra {
+    color: #6c6c70;
+}
+
+body.tema-claro .btn-toggle-history:hover,
+body.tema-claro .btn-extra:hover {
+    background-color: #e0e0e5;
+    color: #000000;
+}
+
+body.tema-claro .panel-historial-flotante,
+body.tema-claro .panel-extra-flotante {
+    background-color: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+body.tema-claro .titulo-historial {
+    color: #000000;
+    border-bottom: 1px solid #d1d1d6;
+}
+
+body.tema-claro .extra-opcion {
+    color: #000000;
+}
+
+body.tema-claro .extra-opcion:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+body.tema-claro .fila-historial:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+body.tema-claro .hist-eq {
+    color: #6c6c70;
+}
+
+body.tema-claro .btn-cientifico {
+    background-color: #e0e0e5;
+    color: #ff9f0a;
+    border: 1px solid #d1d1d6;
+}
+
+body.tema-claro .btn-cientifico:hover {
+    background-color: #d1d1d6;
 }

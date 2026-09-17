@@ -2,14 +2,14 @@ const display = document.querySelector('.display');
 const historyDisplay = document.querySelector('.operation-history');
 const clearButton = document.getElementById('btn-clear');
 const buttons = document.querySelectorAll('.buttons-grid button');
-
+const botonesCientificos = document.querySelectorAll('.btn-cientifico');
 
 let currentNumber = '0';
 let equationStructure = [];
 let lastResult = '';
 let resetOnNextNumber = false;
 
-let lastAppliedOperator = null; 
+let lastAppliedOperator = null;
 let lastAppliedValue = null;
 
 buttons.forEach(button => {
@@ -56,7 +56,7 @@ buttons.forEach(button => {
                 appendNumber(value);
                 break;
         }
-        
+
         updateDisplay();
         updateClearButtonText();
     });
@@ -67,14 +67,15 @@ function updateDisplay() {
         display.textContent = '0';
     } else {
         let activeEquation = equationStructure.join(' ');
-        
+
         if (currentNumber !== '') {
             if (currentNumber === '0' && equationStructure.length > 0 && isOperator(equationStructure[equationStructure.length - 1])) {
+                // No mostrar el 0 después de un operador
             } else if (currentNumber !== '0' || equationStructure.length === 0) {
                 activeEquation += (activeEquation ? ' ' : '') + currentNumber;
             }
         }
-        
+
         display.textContent = activeEquation || '0';
     }
 
@@ -103,7 +104,6 @@ function isOperator(val) {
 
 function roundResult(num) {
     if (!isFinite(num)) return num;
-    // Si el número es muy pequeño, no lo redondeamos todavía para no perderlo como 0
     if (Math.abs(num) > 0 && Math.abs(num) < 1e-6) {
         return num;
     }
@@ -137,7 +137,6 @@ function formatResult(num) {
 
     const absNum = Math.abs(num);
 
-    // Muy grande o muy pequeño: notación científica en base 10 (mantisa × 10^exponente)
     if (absNum >= 1e10 || absNum < 1e-6) {
         let expStr = num.toExponential(6);
         let [mantissa, exponent] = expStr.split('e');
@@ -210,24 +209,19 @@ function handleBackspace() {
     if (resetOnNextNumber) {
         resetOnNextNumber = false;
     }
-    
+
     if (currentNumber !== '' && currentNumber !== '0') {
         if (currentNumber.endsWith('%')) {
             currentNumber = currentNumber.slice(0, -1);
         } else if (currentNumber.length > 1) {
             currentNumber = currentNumber.slice(0, -1);
         } else {
-            if (equationStructure.length > 0) {
-                currentNumber = '0';
-            } else {
-                currentNumber = '0';
-            }
+            currentNumber = '0';
         }
-    } 
-    else if (currentNumber === '0' && equationStructure.length > 0) {
+    } else if (currentNumber === '0' && equationStructure.length > 0) {
         let lastItem = equationStructure[equationStructure.length - 1];
         if (isOperator(lastItem)) {
-            equationStructure.pop(); 
+            equationStructure.pop();
             let previousNum = equationStructure.pop();
             currentNumber = previousNum !== undefined ? previousNum : '0';
         }
@@ -236,7 +230,7 @@ function handleBackspace() {
 
 function handlePlusMinus() {
     if (resetOnNextNumber) {
-        resetOnNextNumber = false; 
+        resetOnNextNumber = false;
     }
 
     if (currentNumber !== '' && currentNumber !== '0' && !currentNumber.includes('%')) {
@@ -252,7 +246,7 @@ function handlePercentage() {
     if (currentNumber === '' && equationStructure.length === 0) return;
     if (currentNumber === '0' && equationStructure.length === 0) return;
     if (currentNumber === '' && isOperator(equationStructure[equationStructure.length - 1])) return;
-    
+
     if (resetOnNextNumber) {
         resetOnNextNumber = false;
     }
@@ -304,13 +298,11 @@ function calculate() {
     let tokens = [];
     for (let i = 0; i < equationStructure.length; i++) {
         let token = equationStructure[i];
-        
+
         if (typeof token === 'string' && token.includes('%')) {
             let parts = token.split('%');
             let numericValue = parseValue(parts[0]);
-            let calculatedPercent;
-
-            calculatedPercent = numericValue / 100;
+            let calculatedPercent = numericValue / 100;
             tokens.push(calculatedPercent);
 
             if (parts[1] && parts[1].trim() !== '') {
@@ -320,6 +312,74 @@ function calculate() {
         } else {
             tokens.push(token);
         }
+    }
+
+    let seguridad = 0;
+    while (tokens.includes('(') && seguridad < 100) {
+        seguridad++;
+        let cierre = tokens.indexOf(')');
+        if (cierre === -1) break;
+
+        let apertura = -1;
+        for (let k = cierre - 1; k >= 0; k--) {
+            if (tokens[k] === '(') { apertura = k; break; }
+        }
+        if (apertura === -1) break;
+
+        let subTokens = tokens.slice(apertura + 1, cierre);
+
+        let p = 0;
+        while (p < subTokens.length) {
+            if (subTokens[p] === '^') {
+                let prev = parseValue(subTokens[p - 1]);
+                let next = parseValue(subTokens[p + 1]);
+                let res = Math.pow(prev, next);
+                if (!isFinite(res)) res = 'Error';
+                subTokens.splice(p - 1, 3, res);
+                p--;
+            }
+            p++;
+        }
+
+        p = 0;
+        while (p < subTokens.length) {
+            if (subTokens[p] === '×' || subTokens[p] === '÷') {
+                let prev = parseValue(subTokens[p - 1]);
+                let next = parseValue(subTokens[p + 1]);
+                let res = subTokens[p] === '×' ? prev * next : (next === 0 ? 'Error' : prev / next);
+                subTokens.splice(p - 1, 3, res);
+                p--;
+            }
+            p++;
+        }
+
+        p = 0;
+        while (subTokens.length > 1 && p < subTokens.length) {
+            if (subTokens[p] === '+' || subTokens[p] === '−') {
+                let prev = parseValue(subTokens[p - 1]);
+                let next = parseValue(subTokens[p + 1]);
+                let res = subTokens[p] === '+' ? prev + next : prev - next;
+                subTokens.splice(p - 1, 3, res);
+                p--;
+            }
+            p++;
+        }
+
+        let valorParentesis = subTokens.length === 1 ? subTokens[0] : parseValue(subTokens[0]);
+        tokens.splice(apertura, cierre - apertura + 1, valorParentesis);
+    }
+
+    let j = 0;
+    while (j < tokens.length) {
+        if (tokens[j] === '^') {
+            let prev = parseValue(tokens[j - 1]);
+            let next = parseValue(tokens[j + 1]);
+            let res = Math.pow(prev, next);
+            if (!isFinite(res)) res = 'Error';
+            tokens.splice(j - 1, 3, res);
+            j--;
+        }
+        j++;
     }
 
     let i = 0;
@@ -369,12 +429,22 @@ function calculate() {
 
     currentNumber = displayResult;
     lastResult = currentNumber;
-    equationStructure = []; 
-    resetOnNextNumber = true; 
+    equationStructure = [];
+    resetOnNextNumber = true;
 }
 
 const btnHistorial = document.getElementById('btn-historial');
 const panelHistorial = document.getElementById('panel-historial');
+
+const btnBorrarHistorial = document.getElementById('btn-borrar-historial');
+
+btnBorrarHistorial.addEventListener('click', (e) => {
+    e.stopPropagation();
+
+    window.historialOperaciones = [];
+    actualizarPanelHistorial();
+    historyDisplay.textContent = '';
+});
 
 btnHistorial.addEventListener('click', (e) => {
     e.preventDefault();
@@ -382,7 +452,6 @@ btnHistorial.addEventListener('click', (e) => {
     panelHistorial.classList.toggle('abierto');
     updateClearButtonText();
 });
-
 
 document.querySelector('.calculator').addEventListener('click', (e) => {
     if (!panelHistorial.contains(e.target) && e.target !== btnHistorial) {
@@ -394,6 +463,8 @@ function actualizarPanelHistorial() {
     const lista = panelHistorial.querySelector('.lista-operaciones');
     lista.innerHTML = '';
 
+    if (!window.historialOperaciones) window.historialOperaciones = [];
+
     window.historialOperaciones.forEach((item) => {
         const fila = document.createElement('div');
         fila.classList.add('fila-historial');
@@ -401,20 +472,214 @@ function actualizarPanelHistorial() {
             <span class="hist-eq">${item.ecuacion} =</span>
             <span class="hist-res">${item.resultado}</span>
         `;
-        
+
         fila.addEventListener('click', (e) => {
             e.stopPropagation();
-            
+
             currentNumber = item.resultado.toString();
             equationStructure = [];
             resetOnNextNumber = true;
-            
+
             updateDisplay();
             clearButton.textContent = 'AC';
-            
+
             panelHistorial.classList.remove('abierto');
         });
-        
+
         lista.appendChild(fila);
     });
+}
+
+const btnExtra = document.getElementById('btn-extra');
+const menuExtra = document.getElementById('panel-extra');
+const opcionesExtra = menuExtra.querySelectorAll('.extra-opcion');
+const calculadora = document.querySelector('.calculator');
+
+let temaClaro = false;
+let modoCientifico = false;
+
+btnExtra.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    menuExtra.classList.toggle('abierto');
+});
+
+opcionesExtra.forEach(opcion => {
+    opcion.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const tipo = opcion.dataset.opcion;
+
+        switch (tipo) {
+            case 'cientifica':
+                toggleModoCientifico(opcion);
+                break;
+            case 'tema':
+                toggleTema(opcion);
+                break;
+        }
+
+        menuExtra.classList.remove('abierto');
+    });
+});
+
+document.addEventListener('click', (e) => {
+    if (!menuExtra.contains(e.target) && e.target !== btnExtra && !btnExtra.contains(e.target)) {
+        menuExtra.classList.remove('abierto');
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        menuExtra.classList.remove('abierto');
+        panelHistorial.classList.remove('abierto');
+    }
+});
+
+function toggleModoCientifico(opcion) {
+    modoCientifico = !modoCientifico;
+    calculadora.classList.toggle('modo-cientifico', modoCientifico);
+    opcion.classList.toggle('activa', modoCientifico);
+
+    const texto = opcion.querySelector('span:last-child');
+    texto.textContent = modoCientifico ? 'Modo normal' : 'Modo científico';
+}
+
+function toggleTema(opcion) {
+    temaClaro = !temaClaro;
+    document.body.classList.toggle('tema-claro', temaClaro);
+    opcion.classList.toggle('activa', temaClaro);
+
+    const icono = opcion.querySelector('.extra-icono');
+    const texto = opcion.querySelector('span:last-child');
+    texto.textContent = temaClaro ? 'Tema oscuro' : 'Tema claro';
+}
+
+
+botonesCientificos.forEach(boton => {
+    boton.addEventListener('click', () => {
+        const func = boton.dataset.func;
+
+        switch (func) {
+            case 'paren-open': {
+                if (resetOnNextNumber) {
+                    equationStructure = [];
+                    currentNumber = '0';
+                    resetOnNextNumber = false;
+                }
+                if (currentNumber !== '' && currentNumber !== '0') {
+                    equationStructure.push(currentNumber);
+                    currentNumber = '';
+                    const ultimo = equationStructure[equationStructure.length - 1];
+                    if (ultimo !== '(' && !isOperator(ultimo)) {
+                        equationStructure.push('×');
+                    }
+                } else if (equationStructure.length > 0) {
+                    const ultimo = equationStructure[equationStructure.length - 1];
+                    if (ultimo !== '(' && !isOperator(ultimo) && ultimo !== '^') {
+                        equationStructure.push('×');
+                    }
+                }
+                equationStructure.push('(');
+                currentNumber = '';
+                break;
+            }
+
+            case 'paren-close': {
+                const abiertos = equationStructure.filter(t => t === '(').length;
+                const cerrados = equationStructure.filter(t => t === ')').length;
+                if (abiertos <= cerrados) return;
+
+                if (currentNumber !== '') {
+                    equationStructure.push(currentNumber);
+                    currentNumber = '';
+                }
+                equationStructure.push(')');
+                break;
+            }
+
+            case 'sqrt': {
+                if (resetOnNextNumber) {
+                    equationStructure = [];
+                    resetOnNextNumber = false;
+                }
+                let valor = parseValue(currentNumber);
+                if (isNaN(valor)) return;
+                if (valor < 0) {
+                    mostrarError('Error: raíz de negativo');
+                    return;
+                }
+                let resultado = roundResult(Math.sqrt(valor));
+                let displayResult = formatResult(resultado);
+
+                let ecuacion = `√(${currentNumber})`;
+                historyDisplay.textContent = ecuacion;
+
+                if (!window.historialOperaciones) window.historialOperaciones = [];
+                window.historialOperaciones.push({ ecuacion, resultado: displayResult });
+                actualizarPanelHistorial();
+
+                currentNumber = displayResult;
+                lastResult = currentNumber;
+                equationStructure = [];
+                resetOnNextNumber = true;
+                break;
+            }
+
+            case 'pow': {
+                if (resetOnNextNumber) {
+                    resetOnNextNumber = false;
+                }
+                if (currentNumber !== '') {
+                    equationStructure.push(currentNumber);
+                    currentNumber = '';
+                }
+                equationStructure.push('^');
+                break;
+            }
+
+            case 'e': {
+                if (resetOnNextNumber) {
+                    equationStructure = [];
+                    currentNumber = '0';
+                    resetOnNextNumber = false;
+                }
+                if (currentNumber === '0' || currentNumber === '') {
+                    currentNumber = Math.E.toString();
+                } else {
+                    equationStructure.push(currentNumber);
+                    equationStructure.push('×');
+                    currentNumber = Math.E.toString();
+                }
+                break;
+            }
+
+            case 'pi': {
+                if (resetOnNextNumber) {
+                    equationStructure = [];
+                    currentNumber = '0';
+                    resetOnNextNumber = false;
+                }
+                if (currentNumber === '0' || currentNumber === '') {
+                    currentNumber = Math.PI.toString();
+                } else {
+                    equationStructure.push(currentNumber);
+                    equationStructure.push('×');
+                    currentNumber = Math.PI.toString();
+                }
+                break;
+            }
+        }
+
+        updateDisplay();
+        updateClearButtonText();
+    });
+});
+
+function mostrarError(mensaje) {
+    historyDisplay.textContent = mensaje;
+    currentNumber = '0';
+    equationStructure = [];
+    resetOnNextNumber = true;
+    updateDisplay();
+    updateClearButtonText();
 }

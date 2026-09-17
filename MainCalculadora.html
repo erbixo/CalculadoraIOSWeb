@@ -15,13 +15,50 @@
                 </svg>
             </button>
             <div class="panel-historial-flotante" id="panel-historial">
-                <div class="titulo-historial">Historial de Operaciones</div>
+                <div class="titulo-historial">
+                    <span>Historial de Operaciones</span>
+                    <button class="btn-borrar-historial" id="btn-borrar-historial" title="Borrar historial">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </button>
+                </div>
                 <div class="lista-operaciones"></div>
             </div>
+            <button class="btn-extra" id="btn-extra" title="Más opciones">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+                    <circle cx="5" cy="12" r="1.5" />
+                    <circle cx="12" cy="12" r="1.5" />
+                    <circle cx="19" cy="12" r="1.5" />
+                </svg>
+            </button>
+
+            <div class="panel-extra-flotante" id="panel-extra">
+                <button class="extra-opcion" data-opcion="cientifica">
+                    <span>Modo científico</span>
+                </button>
+                <button class="extra-opcion" data-opcion="tema">
+                    <span>Cambiar tema</span>
+                </button>
+            </div>
+
             <div class="display-container">
                 <div class="operation-history"></div>
                 <div class="display">0</div>
             </div>
+
+            <div class="fila-cientifica" id="fila-cientifica">
+                <button class="btn-cientifico" data-func="paren-open">(</button>
+                <button class="btn-cientifico" data-func="paren-close">)</button>
+                <button class="btn-cientifico" data-func="sqrt">√</button>
+                <button class="btn-cientifico" data-func="pow">xʸ</button>
+                <button class="btn-cientifico" data-func="e">e</button>
+                <button class="btn-cientifico" data-func="pi">π</button>
+            </div>
+
             <div class="buttons-grid">
                 <button class="btn-top-op btn-backspace">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
